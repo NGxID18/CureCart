@@ -23,16 +23,17 @@ app.use(express.urlencoded({ extended: true }));
 
 // 3. Konfigurasi Session
 app.use(session({
-    secret: 'iniadalahkunciRahasia12345', // Ganti dengan string acak
+    secret: process.env.SESSION_SECRET, // <-- GANTI BARIS INI
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set 'true' jika Anda menggunakan HTTPS
+    cookie: { secure: isProduction } // Otomatis 'secure' jika di production
 }));
 
-// 4. Middleware kustom untuk mengecek status login di SEMUA rute
-// Ini akan mengirim data 'user' ke setiap file EJS
+// 4. Middleware kustom...
+// Tambahkan isProduction ke 'locals' agar EJS tahu
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
+    res.locals.isProduction = isProduction; // <-- TAMBAHKAN BARIS INI
     next();
 });
 

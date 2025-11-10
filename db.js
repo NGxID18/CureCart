@@ -11,7 +11,7 @@ const connectionString = isProduction
     ? process.env.DATABASE_URL 
     : process.env.DATABASE_URL_LOCAL;
 
-// Konfigurasi SSL (Wajib untuk Railway/Heroku)
+// Konfigurasi SSL (Wajib untuk Railway)
 const sslConfig = isProduction 
     ? { rejectUnauthorized: false } 
     : false;
