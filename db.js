@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { Pool } = require('pg');
 
 // Cek jika kita di server (Railway) atau di lokal

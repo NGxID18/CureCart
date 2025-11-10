@@ -1,15 +1,18 @@
+require('dotenv').config(); // <-- HARUS DI BARIS 1
+
 // Impor alat-alat
 const express = require('express');
-const PDFDocument = require('pdfkit'); // Modul PDF
-const fs = require('fs'); // Modul PDF
-const session = require('express-session'); // Impor express-session
-const bcrypt = require('bcrypt'); // Impor bcrypt
-const db = require('./db'); // Impor koneksi DB kita
-require('dotenv').config(); // Panggil dotenv config
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const session = require('express-session');
+const bcrypt = require('bcrypt');
+const db = require('./db'); // <-- Sekarang db diimpor SETELAH dotenv
 
+// ----- DEBUGGING DEPLOY (Boleh dihapus nanti) -----
 console.log('----- DEBUGGING DEPLOY -----');
 console.log('Nilai NODE_ENV adalah:', process.env.NODE_ENV);
 console.log('----------------------------');
+// ---------------------------------------------
 
 // Inisialisasi aplikasi Express
 const app = express();
