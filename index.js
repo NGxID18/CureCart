@@ -151,7 +151,14 @@ app.post('/login', async (req, res) => {
             email: user.email,
             is_admin: user.is_admin
         };
-        res.redirect('/');
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.send('Error saat menyimpan session.');
+            }
+            // Hanya redirect SETELAH session 100% tersimpan
+            res.redirect('/');
+        });
 
     } catch (err) {
         console.error(err);
@@ -182,7 +189,14 @@ app.post('/register', async (req, res) => {
             email: newUser.email,
             is_admin: newUser.is_admin
         };
-        res.redirect('/');
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error after register:', err);
+                return res.send('Error saat menyimpan session setelah registrasi.');
+            }
+            // Hanya redirect SETELAH session 100% tersimpan
+            res.redirect('/');
+        });
 
     } catch (err) {
         console.error(err);
