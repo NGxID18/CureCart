@@ -8,6 +8,9 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const db = require('./db'); // <-- Sekarang db diimpor SETELAH dotenv
 
+const pgSession = require('connect-pg-simple')(session);
+const pool = db.pool; // <-- Kita ambil pool dari db.js
+
 // ----- DEBUGGING DEPLOY (Boleh dihapus nanti) -----
 console.log('----- DEBUGGING DEPLOY -----');
 console.log('Nilai NODE_ENV adalah:', process.env.NODE_ENV);
@@ -29,12 +32,22 @@ app.set('view engine', 'ejs');
 // 2. Middleware untuk membaca data form (req.body)
 app.use(express.urlencoded({ extended: true }));
 
-// 3. Konfigurasi Session
+// 3. Konfigurasi Session (Production-Ready dengan PG Store)
+const sessionStore = new pgSession({
+    pool: pool, // Gunakan pool koneksi kita
+    tableName: 'user_sessions' // Cocokkan dengan nama tabel di Langkah 2
+});
+
 app.use(session({
-    secret: process.env.SESSION_SECRET, // <-- GANTI BARIS INI
+    store: sessionStore, // <-- Kunci utamanya di sini
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: isProduction } // Otomatis 'secure' jika di production
+    saveUninitialized: false, // Kita ubah ke false (best practice)
+    cookie: {
+        secure: isProduction,
+        httpOnly: true, // Mencegah XSS
+        maxAge: 30 * 24 * 60 * 60 * 1000 // Cookie 30 hari
+    }
 }));
 
 // 4. Middleware kustom...
