@@ -7,6 +7,10 @@ const bcrypt = require('bcrypt'); // Impor bcrypt
 const db = require('./db'); // Impor koneksi DB kita
 require('dotenv').config(); // Panggil dotenv config
 
+console.log('----- DEBUGGING DEPLOY -----');
+console.log('Nilai NODE_ENV adalah:', process.env.NODE_ENV);
+console.log('----------------------------');
+
 // Inisialisasi aplikasi Express
 const app = express();
 // Railway akan memberi tahu kita port mana yang harus dipakai via process.env.PORT
