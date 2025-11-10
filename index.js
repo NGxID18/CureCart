@@ -19,6 +19,7 @@ console.log('----------------------------');
 
 // Inisialisasi aplikasi Express
 const app = express();
+app.set('trust proxy', 1);
 // Railway akan memberi tahu kita port mana yang harus dipakai via process.env.PORT
 const port = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
