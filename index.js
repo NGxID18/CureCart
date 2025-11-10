@@ -1,4 +1,4 @@
-require('dotenv').config(); // <-- HARUS DI BARIS 1
+require('dotenv').config();
 
 // Impor alat-alat
 const express = require('express');

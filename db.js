@@ -1,19 +1,21 @@
+// db.js
 const { Pool } = require('pg');
 
-// Cek jika kita di server (Railway) atau di lokal
-const isProduction = process.env.NODE_ENV === 'production';
+// Logika BARU:
+// Cek jika DATABASE_URL (dari Railway) ada.
+// Jika tidak, baru pakai DATABASE_URL_LOCAL (dari .env di laptop)
+const connectionString = process.env.DATABASE_URL || process.env.DATABASE_URL_LOCAL;
 
-// Ambil URL koneksi
-// Saat di Railway, dia akan ambil dari 'Variables'
-// Saat di lokal, dia akan ambil dari file .env
-const connectionString = isProduction 
-    ? process.env.DATABASE_URL 
-    : process.env.DATABASE_URL_LOCAL;
-
-// Konfigurasi SSL (Wajib untuk Railway)
-const sslConfig = isProduction 
+// SSL (gembok) WAJIB ada jika kita pakai DATABASE_URL (Railway)
+// Tapi SSL tidak ada di localhost.
+const sslConfig = process.env.DATABASE_URL 
     ? { rejectUnauthorized: false } 
     : false;
+
+// Jika connectionString masih kosong (error), beri tahu kami
+if (!connectionString) {
+    throw new Error('DATABASE_URL atau DATABASE_URL_LOCAL tidak ditemukan. Pastikan .env (lokal) atau Variables (Railway) sudah benar.');
+}
 
 const pool = new Pool({
     connectionString: connectionString,
