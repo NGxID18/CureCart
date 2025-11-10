@@ -1,13 +1,24 @@
-require('dotenv').config(); 
-
+require('dotenv').config();
 const { Pool } = require('pg');
 
+// Cek jika kita di server (Railway) atau di lokal
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Ambil URL koneksi
+// Saat di Railway, dia akan ambil dari 'Variables'
+// Saat di lokal, dia akan ambil dari file .env
+const connectionString = isProduction 
+    ? process.env.DATABASE_URL 
+    : process.env.DATABASE_URL_LOCAL;
+
+// Konfigurasi SSL (Wajib untuk Railway/Heroku)
+const sslConfig = isProduction 
+    ? { rejectUnauthorized: false } 
+    : false;
+
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+    connectionString: connectionString,
+    ssl: sslConfig
 });
 
 module.exports = {
