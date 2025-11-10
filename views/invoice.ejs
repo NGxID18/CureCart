@@ -1,0 +1,62 @@
+<%- include('_header', { title: 'Invoice #' + order.id }) %>
+
+<div class="alert alert-success" role="alert">
+    <h4 class="alert-heading">Pembayaran Berhasil!</h4>
+    <p>Terima kasih atas pesanan Anda. Pesanan Anda sedang kami proses.</p>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2>Invoice #<%= order.id %></h2>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <strong>Tanggal:</strong> <%= new Date(order.created_at).toLocaleDateString('id-ID') %>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <strong>Status:</strong> <span class="badge bg-success fs-6"><%= order.status %></span>
+            </div>
+        </div>
+
+        <h4>Detail Pesanan:</h4>
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Produk</th>
+                    <th>Jumlah</th>
+                    <th>Harga Satuan</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% items.forEach(item => { %>
+                    <tr>
+                        <td><%= item.name %></td>
+                        <td><%= item.quantity %></td>
+                        <td>Rp <%= item.price_at_purchase %></td>
+                        <td>Rp <%= item.quantity * item.price_at_purchase %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+            <tfoot class="table-light">
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Total Pembayaran:</strong></td>
+                    <td><strong>Rp <%= order.total_amount %></strong></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <hr>
+        <div class="text-center">
+            <a href="/invoice/<%= order.id %>/pdf" class="btn btn-success btn-lg">
+                Download Invoice (.pdf)
+            </a>
+            <a href="/" class="btn btn-primary btn-lg">
+                Kembali ke Toko
+            </a>
+        </div>
+    </div>
+</div>
+
+<%- include('_footer') %>

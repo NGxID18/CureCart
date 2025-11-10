@@ -1,0 +1,21 @@
+# --- Kunci Rahasia ---
+# JANGAN PERNAH upload file .env. File ini berisi password DB.
+.env
+
+# --- Dependencies ---
+# Folder ini bisa di-generate ulang kapan saja dengan 'npm install'
+# Ukurannya sangat besar dan tidak boleh di-commit.
+node_modules/
+
+# --- File Sistem Operasi ---
+.DS_Store
+Thumbs.db
+
+# --- File Log ---
+# Log dari error atau proses
+*.log
+npm-debug.log*
+
+# --- File Editor VSCode ---
+# Pengaturan personal VSCode Anda, tidak perlu di-share
+.vscode/

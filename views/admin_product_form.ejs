@@ -1,0 +1,48 @@
+<%- include('_header', { title: title }) %>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3><%= title %></h3>
+            </div>
+            <div class="card-body">
+                <form action="<%= url %>" method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nama Produk:</label>
+                        <input type="text" id="name" name="name" class="form-control"
+                               value="<%= (product) ? product.name : '' %>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Deskripsi:</label>
+                        <textarea id="description" name="description" rows="5" class="form-control"><%= (product) ? product.description : '' %></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="price" class="form-label">Harga (Rp):</label>
+                            <input type="number" id="price" name="price" step="0.01" class="form-control"
+                                   value="<%= (product) ? product.price : '' %>" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="stock_quantity" class="form-label">Stok:</label>
+                            <input type="number" id="stock_quantity" name="stock_quantity" class="form-control"
+                                   value="<%= (product) ? product.stock_quantity : '' %>" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image_url" class="form-label">URL Gambar:</label>
+                        <input type="text" id="image_url" name="image_url" class="form-control"
+                               value="<%= (product) ? product.image_url : '' %>">
+                    </div>
+                    
+                    <hr>
+                    
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    <a href="/admin/products" class="btn btn-secondary">Batal</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('_footer') %>
