@@ -11,6 +11,7 @@ require('dotenv').config(); // Panggil dotenv config
 const app = express();
 // Railway akan memberi tahu kita port mana yang harus dipakai via process.env.PORT
 const port = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 // ----- MIDDLEWARE -----
 // (Ini adalah 'otak' yang memproses request sebelum sampai ke Rute)
