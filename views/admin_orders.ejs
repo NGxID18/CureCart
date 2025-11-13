@@ -2,63 +2,66 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4 reveal-on-scroll">
     <h1>Manajemen Pesanan</h1>
-    <a href="/admin/products" class="btn btn-outline-primary">Kembali ke Manajemen Produk</a>
+    <a href="/admin/products" class="btn btn-outline-orchid">Kembali ke Manajemen Produk</a>
 </div>
 
-<div class="card reveal-on-scroll">
-    <div class="table-responsive">
-        <table class="table table-striped table-hover mb-0 align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID Pesanan</th>
-                    <th>Pelanggan</th>
-                    <th>Tanggal</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (orders.length > 0) { %>
-                    <% orders.forEach(order => { %>
+<div class="row reveal-on-scroll">
+    <div class="col-12">
+        <div class="card shadow-sm"> <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-dark">
                         <tr>
-                            <td>#<%= order.id %></td>
-                            <td><%= order.customer_name %></td>
-                            <td><%= new Date(order.created_at).toLocaleDateString('id-ID') %></td>
-                            <td>Rp <%= Number(order.total_amount).toLocaleString('id-ID') %></td>
-                            <td>
-                                <% if (order.status === 'Paid') { %>
-                                    <span class="badge bg-success">Dibayar (Siap Kirim)</span>
-                                <% } else if (order.status === 'Shipped') { %>
-                                    <span class="badge bg-primary">Terkirim</span>
-                                <% } else if (order.status === 'Pending') { %>
-                                    <span class="badge bg-warning text-dark">Menunggu Pembayaran</span>
-                                <% } else if (order.status === 'Cancelled_By_User') { %>
-                                    <span class="badge bg-danger">Dibatalkan Pelanggan</span>
-                                <% } else { %>
-                                    <span class="badge bg-secondary"><%= order.status %></span>
-                                <% } %>
-                            </td>
-                            <td>
-                                <% if (order.status === 'Paid') { %>
-                                    <form action="/admin/orders/ship/<%= order.id %>" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            Konfirmasi & Kirim
-                                        </button>
-                                    </form>
-                                <% } else { %>
-                                    <span class="text-muted">N/A</span>
-                                <% } %>
-                            </td>
+                            <th>ID Pesanan</th>
+                            <th>Pelanggan</th>
+                            <th>Tanggal</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
                         </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr>
-                        <td colspan="6" class="text-center p-4">Belum ada pesanan yang masuk.</td>
-                    </tr>
-                <% } %>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        <% if (orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td><a href="/invoice/<%= order.id %>" class="fw-bold">#<%= order.id %></a></td>
+                                    <td><%= order.customer_name %></td>
+                                    <td><%= new Date(order.created_at).toLocaleDateString('id-ID') %></td>
+                                    <td>Rp <%= Number(order.total_amount).toLocaleString('id-ID') %></td>
+                                    <td>
+                                        <% if (order.status === 'Paid') { %>
+                                            <span class="badge bg-success">Dibayar (Siap Kirim)</span>
+                                        <% } else if (order.status === 'Shipped') { %>
+                                            <span class="badge bg-primary">Terkirim</span>
+                                        <% } else if (order.status === 'Pending') { %>
+                                            <span class="badge bg-warning text-dark">Menunggu Pembayaran</span>
+                                        <% } else if (order.status === 'Cancelled_By_User') { %>
+                                            <span class="badge bg-danger">Dibatalkan Pelanggan</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary"><%= order.status %></span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (order.status === 'Paid') { %>
+                                            <form action="/admin/orders/ship/<%= order.id %>" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    Konfirmasi & Kirim
+                                                </button>
+                                            </form>
+                                        <% } else { %>
+                                            <a href="/invoice/<%= order.id %>" class="btn btn-info btn-sm">Lihat</a>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center p-4">Belum ada pesanan yang masuk.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
