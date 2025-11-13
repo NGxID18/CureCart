@@ -58,6 +58,60 @@ body {
     --orchid-darker: #8E44AD;
 }
 
+/* ----- 7. HERO BANNER (BARU) ----- */
+.hero-banner {
+    position: relative; /* Diperlukan agar konten 'absolute' pas di dalamnya */
+    height: 350px;
+    background-image: url('https://images.unsplash.com/photo-1576091160550-2173ada999af?q=80&w=2070&auto=format&fit=crop'); /* Gambar placeholder medis/teknologi */
+    background-size: cover;
+    background-position: center 30%;
+    border-radius: 12px;
+    overflow: hidden; /* Memastikan semuanya rapi di dalam radius */
+    color: white;
+    margin-bottom: 2.5rem; /* Beri jarak ke produk di bawah */
+}
+
+.hero-content {
+    position: absolute;
+    bottom: 2rem; /* Posisi di kiri bawah */
+    left: 2rem;
+    z-index: 2;
+}
+
+/* Ini adalah Trapesium Siku-Siku Transparan Anda! */
+.hero-text-bg {
+    background: rgba(0, 0, 0, 0.65); /* Hitam transparan (65%) */
+    padding: 1.5rem;
+    max-width: 500px;
+    
+    /* Keajaiban 'clip-path' untuk membuat bentuk trapesium */
+    clip-path: polygon(
+        0% 0%,      /* Kiri Atas */
+        100% 0%,    /* Kanan Atas */
+        90% 100%,   /* Kanan Bawah (dipotong 10%) */
+        0% 100%     /* Kiri Bawah */
+    );
+}
+
+.hero-text-bg h2 {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.hero-text-bg p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* Tombol di dalam banner */
+.hero-content .btn {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
 /* Tombol Solid (Registrasi, Tambah, Cari) */
 .btn-orchid {
     background-color: var(--orchid-color);
