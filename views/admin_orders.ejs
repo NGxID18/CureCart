@@ -1,13 +1,15 @@
 <%- include('_header', { title: 'Admin: Manajemen Pesanan' }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-4 reveal-on-scroll">
-    <h1>Manajemen Pesanan</h1>
-    <a href="/admin/products" class="btn btn-outline-orchid">Kembali ke Manajemen Produk</a>
-</div>
-
-<div class="row reveal-on-scroll">
+<div class="row">
     <div class="col-12">
-        <div class="card shadow-sm"> <div class="table-responsive">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 reveal-on-scroll">
+            <h1>Manajemen Pesanan</h1>
+            <a href="/admin/products" class="btn btn-outline-orchid">Kembali ke Manajemen Produk</a>
+        </div>
+
+        <div class="card shadow-sm reveal-on-scroll">
+            <div class="table-responsive">
                 <table class="table table-striped table-hover mb-0 align-middle">
                     <thead class="table-dark">
                         <tr>
@@ -62,6 +64,7 @@
                 </table>
             </div>
         </div>
+        
     </div>
 </div>
 
