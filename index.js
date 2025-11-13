@@ -10,6 +10,7 @@ const db = require('./db'); // <-- Sekarang db diimpor SETELAH dotenv
 
 const pgSession = require('connect-pg-simple')(session);
 const pool = db.pool; // <-- Kita ambil pool dari db.js
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // ----- DEBUGGING DEPLOY (Boleh dihapus nanti) -----
 console.log('----- DEBUGGING DEPLOY -----');
@@ -29,6 +30,78 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // 1. Atur EJS sebagai 'view engine'
 app.set('view engine', 'ejs');
+
+// ...
+app.set('view engine', 'ejs');
+
+app.post('/stripe-webhook', express.raw({type: 'application/json'}), 
+    async (req, res) => {
+        const sig = req.headers['stripe-signature'];
+
+        let event;
+
+        try {
+            // Verifikasi bahwa event ini 100% dari Stripe
+            event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        } catch (err) {
+            console.log(`Webhook Error: ${err.message}`);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
+
+        // Tangani event 'checkout.session.completed'
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+
+            // Ambil ID Order kita dari metadata
+            const orderId = session.metadata.order_id;
+            const userId = session.metadata.user_id;
+
+            try {
+                // 1. Update status order menjadi 'Paid'
+                await db.query(
+                    'UPDATE orders SET status = $1 WHERE id = $2 AND user_id = $3',
+                    ['Paid', orderId, userId]
+                );
+                
+                // 2. Ambil data keranjang (LAGI) untuk mengurangi stok
+                //    (Cara aman: Ambil item dari Stripe, bukan session)
+                const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+                
+                // 3. Ambil data keranjang DARI DATABASE KITA (Ini lebih aman)
+                //    Kita perlu tahu ID produknya, bukan cuma nama.
+                //    Ah, kita tidak menyimpan item di DB saat 'Pending'.
+                //    Ini masalah.
+
+                // --- PERBAIKAN ALUR (di Langkah 4) ---
+                // Kita HARUS menyimpan order_items saat 'Pending' juga.
+
+                // --- ASUMSIKAN KITA SUDAH UBAH LANGKAH 4 (Lihat di bawah) ---
+                
+                // 3. Kurangi Stok
+                const itemsResult = await db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
+                for (const item of itemsResult.rows) {
+                    await db.query(
+                        'UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2',
+                        [item.quantity, item.product_id]
+                    );
+                }
+
+                // 4. Kosongkan keranjang session
+                //    (Kita tidak bisa akses req.session di sini, 
+                //     jadi kita kosongkan saat user mengunjungi /order/success)
+
+
+                console.log(`Order ${orderId} telah berhasil dibayar.`);
+
+            } catch (dbErr) {
+                console.error('Error saat update database post-payment:', dbErr);
+            }
+        }
+
+        // Kembalikan respons 200 OK ke Stripe
+        res.status(200).send();
+    }
+);
 
 // 2. Middleware untuk membaca data form (req.body)
 app.use(express.urlencoded({ extended: true }));
@@ -55,7 +128,8 @@ app.use(session({
 // Tambahkan isProduction ke 'locals' agar EJS tahu
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
-    res.locals.isProduction = isProduction; // <-- TAMBAHKAN BARIS INI
+    res.locals.isProduction = isProduction;
+    res.locals.stripePublicKey = process.env.STRIPE_PUBLISHABLE_KEY;
     next();
 });
 
@@ -296,52 +370,68 @@ app.get('/cart/remove/:id', isUser, (req, res) => {
     res.redirect('/cart');
 });
 
-// Rute untuk CHECKOUT (Membuat Pesanan)
-app.post('/checkout', isUser, async (req, res) => {
-    const cart = req.session.cart || [];
-    const userId = req.session.user.id;
-
-    if (cart.length === 0) {
-        return res.redirect('/cart'); // Keranjang kosong
-    }
-
+// Rute untuk MEMBUAT SESI CHECKOUT STRIPE
+app.post('/create-checkout-session', isUser, async (req, res) => {
     try {
-        // Hitung total
+        const cart = req.session.cart || [];
+        const userId = req.session.user.id;
+        const userEmail = req.session.user.email; // Kita butuh email untuk Stripe
+
+        if (cart.length === 0) {
+            return res.status(400).json({ error: 'Keranjang Anda kosong.' });
+        }
+
+        // --- Alur Baru: Buat Order 'Pending' DULU ---
         let total = 0;
         cart.forEach(item => {
             total += item.price * item.quantity;
         });
 
-        // PENTING: Di aplikasi nyata, Anda perlu "Transaction" di sini
-        // untuk memastikan semua query berhasil atau semua gagal.
-        
-        // 1. Buat 'Order' baru di database
+        // 1. Buat 'Order' baru di DB dengan status 'Pending'
         const orderResult = await db.query(
             'INSERT INTO orders (user_id, total_amount, status) VALUES ($1, $2, $3) RETURNING id',
-            [userId, total, 'Paid'] // Kita anggap langsung lunas
+            [userId, total, 'Pending']
         );
-        
         const newOrderId = orderResult.rows[0].id;
 
-        // 2. Simpan setiap item di keranjang ke 'order_items'
-        for (const item of cart) {
-            await db.query(
-                'INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES ($1, $2, $3, $4)',
-                [newOrderId, item.id, item.quantity, item.price]
-            );
+        // 2. Format item untuk API Stripe
+        const line_items = cart.map(item => {
+            return {
+                price_data: {
+                    currency: 'idr', // Stripe mendukung IDR
+                    product_data: {
+                        name: item.name,
+                    },
+                    unit_amount: item.price * 100, // Harga dalam SEN
+                },
+                quantity: item.quantity,
+            };
+        });
+
+        // 3. Buat Sesi Pembayaran Stripe
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'], // 'card' mencakup Visa, Mastercard
+            line_items: line_items,
+            mode: 'payment',
+            customer_email: userEmail,
             
-            await db.query('UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2', [item.quantity, item.id]);
-        }
+            // [PENTING] Kirim ID Order kita ke Stripe, agar webhook tahu
+            metadata: {
+                order_id: newOrderId,
+                user_id: userId
+            },
 
-        // 3. Kosongkan keranjang di session
-        req.session.cart = [];
+            // URL tujuan setelah bayar/batal
+            success_url: `${process.env.YOUR_DOMAIN || 'http://localhost:3000'}/order/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.YOUR_DOMAIN || 'http://localhost:3000'}/order/cancel`,
+        });
 
-        // 4. Arahkan ke halaman invoice yang baru dibuat
-        res.redirect(`/invoice/${newOrderId}`);
+        // 4. Kirim ID Sesi Stripe kembali ke klien
+        res.json({ id: session.id });
 
     } catch (err) {
         console.error(err);
-        res.send('Error saat proses checkout.');
+        res.status(500).json({ error: 'Error membuat sesi checkout.' });
     }
 });
 

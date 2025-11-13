@@ -39,12 +39,12 @@
                     <h3 class="card-title">Total Belanja:</h3>
                     <h2 class="text-danger">Rp <%= total %></h2>
                     <hr>
-                    <h5>Metode Pembayaran (Menyusul)</h5>
-                    <form action="/checkout" method="POST" class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg">
-                            Bayar Sekarang
+                    
+                    <div class="d-grid">
+                        <button id="checkout-button" class="btn btn-success btn-lg">
+                            Bayar dengan Kartu (Visa)
                         </button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -55,5 +55,46 @@
         Keranjang Anda masih kosong. <a href="/" class="alert-link">Mulai belanja</a>!
     </div>
 <% } %>
+
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+    // Ambil Kunci Publishable yang akan kita kirim dari server
+    const stripePublicKey = '<%= locals.stripePublicKey %>'; 
+    const stripe = Stripe(stripePublicKey);
+    const checkoutButton = document.getElementById('checkout-button');
+
+    // Tambahkan 'listener' ke tombol
+    checkoutButton.addEventListener('click', function() {
+        // Buat tombol jadi 'loading' agar tidak diklik dua kali
+        checkoutButton.disabled = true;
+        checkoutButton.innerHTML = 'Memproses...';
+
+        // Hubungi server kita (backend) untuk membuat sesi pembayaran
+        fetch('/create-checkout-session', {
+            method: 'POST',
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(session) {
+            if (session.id) {
+                // Jika server berhasil, arahkan pelanggan ke Halaman Pembayaran Stripe
+                return stripe.redirectToCheckout({ sessionId: session.id });
+            } else {
+                // Jika gagal (misal, stok habis), tampilkan pesan
+                alert(session.error || 'Terjadi kesalahan.');
+                checkoutButton.disabled = false;
+                checkoutButton.innerHTML = 'Bayar dengan Kartu (Visa)';
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            checkoutButton.disabled = false;
+            checkoutButton.innerHTML = 'Bayar dengan Kartu (Visa)';
+        });
+    });
+</script>
 
 <%- include('_footer') %>
