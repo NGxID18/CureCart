@@ -575,6 +575,42 @@ app.post('/admin/products/restore/:id', isAdmin, async (req, res) => {
     }
 });
 
+app.get('/admin/orders', isAdmin, async (req, res) => {
+    try {
+        // Kita 'JOIN' dengan tabel 'users' untuk mendapatkan nama pelanggan
+        const result = await db.query(
+            `SELECT orders.*, users.name AS customer_name 
+             FROM orders 
+             JOIN users ON orders.user_id = users.id 
+             ORDER BY orders.created_at DESC`
+        );
+        
+        res.render('admin_orders', { orders: result.rows });
+    } catch (err) {
+        console.error('Error memuat halaman manajemen pesanan:', err);
+        res.send('Error memuat halaman manajemen pesanan');
+    }
+});
+
+// [TAMBAHKAN RUTE INI]
+// KONFIRMASI / KIRIM PESANAN
+app.post('/admin/orders/ship/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Ubah status dari 'Paid' menjadi 'Shipped'
+        await db.query(
+            "UPDATE orders SET status = 'Shipped' WHERE id = $1 AND status = 'Paid'",
+            [id]
+        );
+        
+        res.redirect('/admin/orders');
+    } catch (err) {
+        console.error('Error saat konfirmasi pesanan:', err);
+        res.send('Error saat konfirmasi pesanan.');
+    }
+});
+
 // ----- AKHIR RUTE -----
 
 
