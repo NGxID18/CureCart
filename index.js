@@ -6,10 +6,10 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const db = require('./db'); // <-- Sekarang db diimpor SETELAH dotenv
+const db = require('./db'); 
 
 const pgSession = require('connect-pg-simple')(session);
-const pool = db.pool; // <-- Kita ambil pool dari db.js
+const pool = db.pool; 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // ----- DEBUGGING DEPLOY (Boleh dihapus nanti) -----
@@ -21,20 +21,16 @@ console.log('----------------------------');
 // Inisialisasi aplikasi Express
 const app = express();
 app.set('trust proxy', 1);
-// Railway akan memberi tahu kita port mana yang harus dipakai via process.env.PORT
 const port = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
 // ----- MIDDLEWARE -----
-// (Ini adalah 'otak' yang memproses request sebelum sampai ke Rute)
 
 // 1. Atur EJS sebagai 'view engine'
 app.set('view engine', 'ejs');
 
-// Rute Webhook Stripe perlu body mentah, bukan JSON
-// Ini HARUS sebelum app.use(express.urlencoded())
+// Rute Webhook Stripe (HARUS SEBELUM 'urlencoded')
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
 app.post('/stripe-webhook', express.raw({type: 'application/json'}), 
     async (req, res) => {
 
@@ -51,7 +47,6 @@ app.post('/stripe-webhook', express.raw({type: 'application/json'}),
         }
 
         try {
-            // Verifikasi bahwa event ini 100% dari Stripe
             event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
         } catch (err) {
             console.log(`Webhook Error: ${err.message}`);
@@ -61,27 +56,21 @@ app.post('/stripe-webhook', express.raw({type: 'application/json'}),
         // Tangani event 'checkout.session.completed'
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object;
-
             const orderId = session.metadata.order_id;
             const userId = session.metadata.user_id;
 
-            // [FIX 2: LOGIKA WEBHOOK DIPERJELAS]
-            // Kita gunakan log granular untuk melacak proses
             try {
                 console.log(`[Webhook ${orderId}] Langkah 1: Pembayaran diterima. Meng-update status order...`);
-                // 1. Update status order menjadi 'Paid'
                 await db.query(
                     'UPDATE orders SET status = $1 WHERE id = $2 AND user_id = $3',
                     ['Paid', orderId, userId]
                 );
                 console.log(`[Webhook ${orderId}] Langkah 2: Status order di-update.`);
                 
-                // 2. Ambil item-item dari order tersebut
                 console.log(`[Webhook ${orderId}] Langkah 3: Mengambil order items...`);
                 const itemsResult = await db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
                 console.log(`[Webhook ${orderId}] Langkah 4: Ditemukan ${itemsResult.rows.length} item.`);
                 
-                // 3. Kurangi Stok untuk setiap item
                 for (const item of itemsResult.rows) {
                     console.log(`[Webhook ${orderId}] Langkah 5: Mengurangi stok untuk product ${item.product_id} (jumlah ${item.quantity})...`);
                     await db.query(
@@ -89,19 +78,12 @@ app.post('/stripe-webhook', express.raw({type: 'application/json'}),
                         [item.quantity, item.product_id]
                     );
                 }
-
-                // 4. Selesai
                 console.log(`[Webhook ${orderId}] Langkah 6: Stok untuk Order ${orderId} telah dikurangi.`);
-
             } catch (dbErr) {
-                // Buat error-nya lebih jelas
                 console.error(`[Webhook ${orderId}] FATAL ERROR SAAT MEMPROSES PEMBAYARAN:`, dbErr);
                 return res.status(500).send('Database error');
             }
-            // [AKHIR FIX 2]
         }
-
-        // Kembalikan respons 200 OK ke Stripe
         res.status(200).send();
     }
 );
@@ -109,26 +91,28 @@ app.post('/stripe-webhook', express.raw({type: 'application/json'}),
 // 2. Middleware untuk membaca data form (req.body)
 app.use(express.urlencoded({ extended: true }));
 
+// [BARU] Sajikan file statis dari folder 'public' (Untuk CSS Kustom)
+app.use(express.static('public'));
+
 // 3. Konfigurasi Session (Production-Ready dengan PG Store)
 const sessionStore = new pgSession({
-    pool: pool, // Gunakan pool koneksi kita
-    tableName: 'user_sessions' // Cocokkan dengan nama tabel di Langkah 2
+    pool: pool, 
+    tableName: 'user_sessions'
 });
 
 app.use(session({
-    store: sessionStore, // <-- Kunci utamanya di sini
+    store: sessionStore,
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // Kita ubah ke false (best practice)
+    saveUninitialized: false, 
     cookie: {
         secure: isProduction,
-        httpOnly: true, // Mencegah XSS
-        maxAge: 30 * 24 * 60 * 60 * 1000 // Cookie 30 hari
+        httpOnly: true, 
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 hari
     }
 }));
 
 // 4. Middleware kustom...
-// Tambahkan isProduction ke 'locals' agar EJS tahu
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     res.locals.isProduction = isProduction;
@@ -140,8 +124,6 @@ app.use((req, res, next) => {
 
 
 // ----- FUNGSI MIDDLEWARE "SATPAM" -----
-
-// Fungsi Middleware untuk Cek Admin
 const isAdmin = (req, res, next) => {
     if (req.session.user && req.session.user.is_admin) {
         next();
@@ -150,7 +132,6 @@ const isAdmin = (req, res, next) => {
     }
 };
 
-// Fungsi Middleware untuk Cek Login (Pelanggan)
 const isUser = (req, res, next) => {
     if (req.session.user) {
         next();
@@ -162,18 +143,42 @@ const isUser = (req, res, next) => {
 
 // ----- RUTE (Routes) -----
 
-// Rute Halaman Utama (Homepage)
+// [PERUBAHAN UTAMA] Rute Homepage dengan Logika Pencarian
 app.get('/', async (req, res) => {
     try {
-        const result = await db.query(
-            'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE ORDER BY created_at DESC',
-        );
-        res.render('index', { products: result.rows });
+        // Ambil query 'search' dari URL (e.g., /?search=stetoskop)
+        const { search } = req.query;
+
+        // Siapkan query dasar
+        let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';
+        const queryParams = [];
+
+        // Jika ada pencarian, modifikasi query-nya
+        if (search) {
+            // 'ILIKE' adalah 'LIKE' yang case-insensitive (khusus Postgres)
+            // '$1' adalah placeholder untuk queryParams
+            baseQuery += ' AND name ILIKE $1'; 
+            queryParams.push(`%${search}%`); // '%' berarti 'cocok sebagian'
+        }
+
+        // Tambahkan urutan di akhir
+        baseQuery += ' ORDER BY created_at DESC';
+
+        // Jalankan query
+        const result = await db.query(baseQuery, queryParams);
+
+        // Kirim produk DAN istilah pencarian (agar form tetap terisi)
+        res.render('index', { 
+            products: result.rows,
+            searchTerm: search || '' // Kirim 'search' atau string kosong
+        });
+    
     } catch (err) {
         console.error(err);
         res.send('Error memuat halaman toko.');
     }
 });
+// [AKHIR PERUBAHAN]
 
 // Rute Halaman Detail Produk
 app.get('/products/:id', async (req, res) => {
@@ -194,13 +199,10 @@ app.get('/products/:id', async (req, res) => {
 });
 
 // ----- RUTE AUTENTIKASI (Tahap 3) -----
-
-// Rute untuk Halaman Login (GET)
 app.get('/login', (req, res) => {
     res.render('login');
 });
 
-// Logika Login (POST)
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -232,12 +234,10 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Rute untuk Halaman Registrasi (GET)
 app.get('/register', (req, res) => {
     res.render('register');
 });
 
-// Logika Registrasi (POST)
 app.post('/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -266,7 +266,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Logika Logout (POST)
 app.post('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -278,9 +277,7 @@ app.post('/logout', (req, res) => {
 });
 
 
-// ----- RUTE KERANJANG (Tahap 5) -----
-
-// Rute untuk MELIHAT Halaman Keranjang
+// ----- RUTE KERANJANG & PEMBAYARAN -----
 app.get('/cart', isUser, (req, res) => {
     const cart = req.session.cart || [];
     let total = 0;
@@ -293,7 +290,6 @@ app.get('/cart', isUser, (req, res) => {
     });
 });
 
-// Rute untuk MENAMBAH produk ke keranjang
 app.post('/cart/add/:id', isUser, async (req, res) => {
     const { id } = req.params;
     const quantity = parseInt(req.body.quantity, 10);
@@ -309,7 +305,7 @@ app.post('/cart/add/:id', isUser, async (req, res) => {
             return res.send('Produk tidak ditemukan');
         }
         const product = result.rows[0];
-        const itemIndex = req.session.cart.findIndex(item => item.id == product.id); // Perbaikan kecil: '=='
+        const itemIndex = req.session.cart.findIndex(item => item.id == product.id);
         if (itemIndex > -1) {
             req.session.cart[itemIndex].quantity += quantity;
         } else {
@@ -327,11 +323,10 @@ app.post('/cart/add/:id', isUser, async (req, res) => {
     }
 });
 
-// Rute untuk MENGHAPUS item dari keranjang
 app.get('/cart/remove/:id', isUser, (req, res) => {
     const { id } = req.params;
     if (req.session.cart) {
-        const itemIndex = req.session.cart.findIndex(item => item.id == id); // Perbaikan kecil: '=='
+        const itemIndex = req.session.cart.findIndex(item => item.id == id);
         if (itemIndex > -1) {
             req.session.cart.splice(itemIndex, 1);
         }
@@ -353,24 +348,19 @@ app.post('/create-checkout-session', isUser, async (req, res) => {
             total += item.price * item.quantity;
         });
 
-        // 1. Buat 'Order' baru di DB dengan status 'Pending'
         const orderResult = await db.query(
             'INSERT INTO orders (user_id, total_amount, status) VALUES ($1, $2, $3) RETURNING id',
             [userId, total, 'Pending']
         );
         const newOrderId = orderResult.rows[0].id;
 
-        // [FIX 1: SIMPAN ORDER ITEMS SAAT CHECKOUT]
-        // Ini adalah perbaikan besar yang hilang.
         for (const item of cart) {
             await db.query(
                 'INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES ($1, $2, $3, $4)',
                 [newOrderId, item.id, item.quantity, item.price]
             );
         }
-        // [AKHIR FIX 1]
-
-        // 2. Format item untuk API Stripe
+        
         const line_items = cart.map(item => {
             return {
                 price_data: {
@@ -378,13 +368,12 @@ app.post('/create-checkout-session', isUser, async (req, res) => {
                     product_data: {
                         name: item.name,
                     },
-                    unit_amount: item.price * 100, // Harga dalam SEN
+                    unit_amount: item.price * 100, 
                 },
                 quantity: item.quantity,
             };
         });
 
-        // 3. Buat Sesi Pembayaran Stripe
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: line_items,
@@ -394,11 +383,9 @@ app.post('/create-checkout-session', isUser, async (req, res) => {
                 order_id: newOrderId,
                 user_id: userId
             },
-            success_url: `${process.env.YOUR_DOMAIN}/order/success`, // Perbaikan: Dihapus session_id
+            success_url: `${process.env.YOUR_DOMAIN}/order/success`,
             cancel_url: `${process.env.YOUR_DOMAIN}/cart`,
         });
-
-        // 4. Kirim ID Sesi Stripe kembali ke klien
         res.json({ id: session.id });
     } catch (err) {
         console.error('Error saat create-checkout-session:', err);
@@ -493,8 +480,6 @@ app.get('/invoice/:id/pdf', isUser, async (req, res) => {
 });
 
 // ----- RUTE ADMIN (Tahap 4) -----
-
-// TAMPILKAN SEMUA PRODUK (READ)
 app.get('/admin/products', isAdmin, async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM products ORDER BY id DESC');
@@ -505,7 +490,6 @@ app.get('/admin/products', isAdmin, async (req, res) => {
     }
 });
 
-// TAMPILKAN FORM TAMBAH PRODUK BARU (CREATE - Bagian 1)
 app.get('/admin/products/new', isAdmin, (req, res) => {
     res.render('admin_product_form', {
         title: 'Tambah Produk Baru',
@@ -514,7 +498,6 @@ app.get('/admin/products/new', isAdmin, (req, res) => {
     });
 });
 
-// PROSES DATA PRODUK BARU (CREATE - Bagian 2)
 app.post('/admin/products/new', isAdmin, async (req, res) => {
     try {
         const { name, description, price, stock_quantity, image_url } = req.body;
@@ -529,7 +512,6 @@ app.post('/admin/products/new', isAdmin, async (req, res) => {
     }
 });
 
-// TAMPILKAN FORM EDIT PRODUK (UPDATE - Bagian 1)
 app.get('/admin/products/edit/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -548,7 +530,6 @@ app.get('/admin/products/edit/:id', isAdmin, async (req, res) => {
     }
 });
 
-// PROSES DATA EDIT PRODUK (UPDATE - Bagian 2)
 app.post('/admin/products/edit/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
