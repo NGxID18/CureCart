@@ -72,7 +72,41 @@ body {
     to { opacity: 1; }
 }
 
-/* [DIHAPUS] Keyframe 'dropDown' dan 'rotateGradient' */
-
 /* ----- 7. PERBAIKAN TAMPILAN BOOTSTRAP (TEMA TERANG) ----- */
 /* Biarkan style Bootstrap default */
+
+/* ----- 8. PALET WARNA ORCHID (KUSTOM) ----- */
+/* :root mendefinisikan variabel warna utama kita */
+:root {
+    --orchid-color: #9B59B6; /* Ini adalah warna Ungu Orchid yang bagus */
+    --orchid-darker: #8E44AD; /* Ini untuk efek hover */
+}
+
+/* Tombol Solid (Untuk "Registrasi" dan "Cari") */
+.btn-orchid {
+    background-color: var(--orchid-color);
+    border-color: var(--orchid-color);
+    color: #ffffff; /* Teks putih */
+}
+
+/* Efek Hover (sedikit lebih gelap) */
+.btn-orchid:hover,
+.btn-orchid:focus {
+    background-color: var(--orchid-darker);
+    border-color: var(--orchid-darker);
+    color: #ffffff;
+}
+
+/* Tombol Outline (Untuk "Login") */
+.btn-outline-orchid {
+    color: var(--orchid-color);
+    border-color: var(--orchid-color);
+}
+
+/* Efek Hover (jadi solid) */
+.btn-outline-orchid:hover,
+.btn-outline-orchid:focus {
+    background-color: var(--orchid-color);
+    border-color: var(--orchid-color);
+    color: #ffffff;
+}
