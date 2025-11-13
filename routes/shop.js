@@ -12,19 +12,34 @@ const isUser = (req, res, next) => {
     }
 };
 
-// Rute Halaman Utama (Homepage)
+// Rute Halaman Utama (Homepage) dengan Logika Pencarian
 router.get('/', async (req, res) => {
     try {
+        // [FIX 1] Ambil 'search' dari res.locals (bukan req.query)
         const { search } = res.locals; 
+
+        // Siapkan query dasar
         let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';
         const queryParams = [];
+
+        // [FIX 1] Logika ini sekarang akan berfungsi
         if (search) {
+            // 'ILIKE' adalah 'LIKE' yang case-insensitive (khusus Postgres)
             baseQuery += ' AND name ILIKE $1'; 
             queryParams.push(`%${search}%`);
         }
+
+        // Tambahkan urutan di akhir
         baseQuery += ' ORDER BY created_at DESC';
+
+        // Jalankan query
         const result = await db.query(baseQuery, queryParams);
-        res.render('index', { products: result.rows });
+
+        // [FIX 1] Kita tidak perlu mengirim 'searchTerm' lagi, karena sudah global
+        res.render('index', { 
+            products: result.rows
+        });
+    
     } catch (err) {
         console.error(err);
         res.send('Error memuat halaman toko.');

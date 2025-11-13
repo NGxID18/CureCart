@@ -38,7 +38,7 @@
                             <form action="/cart/add/<%= product.id %>" method="POST" style="position: relative; z-index: 2;">
                                  <div class="input-group">
                                     <input type="number" name="quantity" class="form-control" value="1" min="1" max="<%= product.stock_quantity %>" onclick="event.stopPropagation();">
-                                    <button type="submit" class="btn btn-primary" onclick="event.stopPropagation();">Tambah</button>
+                                    <button type="submit" class="btn btn-orchid" onclick="event.stopPropagation();">Tambah</button>
                                 </div>
                             </form>
                         <% } %>
