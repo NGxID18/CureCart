@@ -34,15 +34,15 @@
                     <tr>
                         <td><%= item.name %></td>
                         <td><%= item.quantity %></td>
-                        <td>Rp <%= item.price_at_purchase %></td>
-                        <td>Rp <%= item.quantity * item.price_at_purchase %></td>
+                        <td>Rp <%= Number(item.price_at_purchase).toLocaleString('id-ID') %></td>
+                        <td>Rp <%= Number(item.quantity * item.price_at_purchase).toLocaleString('id-ID') %></td>
                     </tr>
                 <% }) %>
             </tbody>
             <tfoot class="table-light">
                 <tr>
                     <td colspan="3" class="text-end"><strong>Total Pembayaran:</strong></td>
-                    <td><strong>Rp <%= order.total_amount %></strong></td>
+                    <td><strong>Rp <%= Number(order.total_amount).toLocaleString('id-ID') %></strong></td>
                 </tr>
             </tfoot>
         </table>

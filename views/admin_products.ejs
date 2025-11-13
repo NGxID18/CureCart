@@ -27,7 +27,7 @@
                     <tr>
                         <td><%= product.id %></td>
                         <td><%= product.name %></td>
-                        <td>Rp <%= product.price %></td>
+                        <td>Rp <%= Number(product.price).toLocaleString('id-ID') %></td>
                         <td><%= product.stock_quantity %></td>
                         <td>
                             <a href="/admin/products/edit/<%= product.id %>" class="btn btn-warning btn-sm">Edit</a>

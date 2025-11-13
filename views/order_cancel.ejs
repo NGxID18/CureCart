@@ -1,0 +1,23 @@
+app.get('/order/cancel', isUser, async (req, res) => {
+    try {
+        // Ambil ID order yang gagal dari URL
+        const { order_id } = req.query;
+
+        if (order_id) {
+            // Hapus item-item yang terkait dengan order 'Pending' ini
+            await db.query('DELETE FROM order_items WHERE order_id = $1', [order_id]);
+            
+            // Hapus order 'Pending' itu sendiri
+            await db.query('DELETE FROM orders WHERE id = $1 AND user_id = $2 AND status = $3', [
+                order_id,
+                req.session.user.id,
+                'Pending'
+            ]);
+        }
+    } catch (err) {
+        console.error('Error saat membersihkan order yang dibatalkan:', err);
+    }
+    
+    // Tetap render halaman "Batal"
+    res.render('order_cancel');
+});

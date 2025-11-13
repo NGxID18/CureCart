@@ -383,8 +383,8 @@ app.post('/create-checkout-session', isUser, async (req, res) => {
                 order_id: newOrderId,
                 user_id: userId
             },
-            success_url: `${process.env.YOUR_DOMAIN}/order/success`,
-            cancel_url: `${process.env.YOUR_DOMAIN}/cart`,
+            success_url: `${process.env.YOUR_DOMAIN}/invoice/${newOrderId}`,
+            cancel_url: `${process.env.YOUR_DOMAIN}/order/cancel?order_id=${newOrderId}`,
         });
         res.json({ id: session.id });
     } catch (err) {
@@ -466,12 +466,12 @@ app.get('/invoice/:id/pdf', isUser, async (req, res) => {
             y = doc.y;
             doc.text(item.name, 50, y);
             doc.text(item.quantity, 250, y);
-            doc.text(`Rp ${item.price_at_purchase}`, 350, y);
-            doc.text(`Rp ${item.quantity * item.price_at_purchase}`, 450, y, { align: 'right' });
+            doc.text(`Rp ${Number(item.price_at_purchase).toLocaleString('id-ID')}`, 350, y);
+            doc.text(`Rp ${Number(item.quantity * item.price_at_purchase).toLocaleString('id-ID')}`, 450, y, { align: 'right' });
             doc.moveDown();
         }
         doc.moveDown();
-        doc.font('Helvetica-Bold').fontSize(16).text(`Total: Rp ${order.total_amount}`, { align: 'right' });
+        doc.font('Helvetica-Bold').fontSize(16).text(`Total: Rp ${Number(order.total_amount).toLocaleString('id-ID')}`, { align: 'right' });
         doc.end();
     } catch (err) {
         console.error(err);

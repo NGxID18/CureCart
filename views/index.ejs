@@ -37,7 +37,7 @@
                             <a href="/products/<%= product.id %>" class="text-decoration-none stretched-link"><%= product.name %></a>
                         </h5>
                         <p class="card-text text-muted">Stok: <%= product.stock_quantity %></p>
-                        <h4 class="text-danger mt-auto">Rp <%= product.price %></h4>
+                        <h4 class="text-danger">Rp <%= Number(product.price).toLocaleString('id-ID') %></h4>
                     </div>
                     
                     <div class="card-footer bg-white border-top-0">

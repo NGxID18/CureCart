@@ -19,9 +19,9 @@
                     <% cart.forEach(item => { %>
                         <tr>
                             <td><%= item.name %></td>
-                            <td>Rp <%= item.price %></td>
+                            <td>Rp <%= Number(item.price).toLocaleString('id-ID') %></td>
                             <td><%= item.quantity %></td>
-                            <td>Rp <%= item.price * item.quantity %></td>
+                            <td>Rp <%= Number(item.price * item.quantity).toLocaleString('id-ID') %></td>
                             <td>
                                 <a href="/cart/remove/<%= item.id %>" class="btn btn-danger btn-sm">Hapus</a>
                             </td>
@@ -37,7 +37,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title">Total Belanja:</h3>
-                    <h2 class="text-danger">Rp <%= total %></h2>
+                    <h2 class="text-danger">Rp <%= Number(total).toLocaleString('id-ID') %></h2>
                     <hr>
                     
                     <div class="d-grid">
