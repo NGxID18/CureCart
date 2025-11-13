@@ -12,6 +12,17 @@ const isUser = (req, res, next) => {
     }
 };
 
+// Rute Halaman Daftar Kategori
+router.get('/categories', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM categories ORDER BY name ASC');
+        res.render('categories', { categories: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.send('Error memuat kategori');
+    }
+});
+
 // Rute Halaman Utama (Homepage)
 router.get('/', async (req, res) => {
     try {

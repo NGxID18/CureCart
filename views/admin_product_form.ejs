@@ -13,10 +13,27 @@
                         <input type="text" id="name" name="name" class="form-control"
                                value="<%= (product) ? product.name : '' %>" required>
                     </div>
+                    
                     <div class="mb-3">
                         <label for="description" class="form-label">Deskripsi:</label>
                         <textarea id="description" name="description" rows="5" class="form-control"><%= (product) ? product.description : '' %></textarea>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Kategori:</label>
+                        <select name="category_id" id="category_id" class="form-select">
+                            <option value="">-- Pilih Kategori --</option>
+                            <% if (locals.categories) { %>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat.id %>" 
+                                        <%= (product && product.category_id == cat.id) ? 'selected' : '' %>>
+                                        <%= cat.name %>
+                                    </option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="price" class="form-label">Harga (Rp):</label>
@@ -29,6 +46,7 @@
                                    value="<%= (product) ? product.stock_quantity : '' %>" required>
                         </div>
                     </div>
+                    
                     <div class="mb-3">
                         <label for="image_url" class="form-label">URL Gambar:</label>
                         <input type="text" id="image_url" name="image_url" class="form-control"
@@ -37,7 +55,7 @@
                     
                     <hr>
                     
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    <button type="submit" class="btn btn-orchid">Simpan Perubahan</button>
                     <a href="/admin/products" class="btn btn-secondary">Batal</a>
                 </form>
             </div>

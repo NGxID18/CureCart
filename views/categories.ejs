@@ -1,0 +1,35 @@
+<%- include('_header', { title: 'Semua Kategori' }) %>
+
+<div class="container reveal-on-scroll">
+    <h1 class="mb-4 fw-bold">Kategori Belanja</h1>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <% if (categories.length > 0) { %>
+            <% categories.forEach(cat => { %>
+                <div class="col">
+                    <a href="/?category=<%= cat.id %>" class="text-decoration-none">
+                        <div class="card h-100 text-center shadow-sm border-0 hover-card" style="transition: transform 0.3s;">
+                            <div class="card-body py-5">
+                                <h3 class="card-title text-dark fw-bold"><%= cat.name %></h3>
+                                <p class="text-muted mb-0">Lihat Produk &rarr;</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="col-12">
+                <div class="alert alert-info">Belum ada kategori.</div>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+    .hover-card:hover {
+        transform: translateY(-5px);
+        background-color: #f8f9fa;
+    }
+</style>
+
+<%- include('_footer') %>

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// Middleware 'isAdmin' (kita salin ke sini)
+// Middleware 'isAdmin'
 const isAdmin = (req, res, next) => {
     if (req.session.user && req.session.user.is_admin) {
         next();
@@ -14,6 +14,7 @@ const isAdmin = (req, res, next) => {
 // TAMPILKAN SEMUA PRODUK (READ)
 router.get('/products', isAdmin, async (req, res) => {
     try {
+        // Kita bisa JOIN untuk menampilkan nama kategori juga di tabel (Opsional)
         const result = await db.query('SELECT * FROM products ORDER BY id DESC');
         res.render('admin_products', { products: result.rows });
     } catch (err) {
@@ -23,21 +24,32 @@ router.get('/products', isAdmin, async (req, res) => {
 });
 
 // TAMPILKAN FORM TAMBAH PRODUK BARU
-router.get('/products/new', isAdmin, (req, res) => {
-    res.render('admin_product_form', {
-        title: 'Tambah Produk Baru',
-        product: null,
-        url: '/admin/products/new'
-    });
+router.get('/products/new', isAdmin, async (req, res) => {
+    try {
+        // [BARU] Ambil semua kategori untuk dropdown
+        const categories = await db.query('SELECT * FROM categories ORDER BY name ASC');
+        
+        res.render('admin_product_form', {
+            title: 'Tambah Produk Baru',
+            product: null,
+            categories: categories.rows, // [BARU] Kirim data kategori ke view
+            url: '/admin/products/new'
+        });
+    } catch (err) {
+        console.error(err);
+        res.send('Error memuat form tambah');
+    }
 });
 
 // PROSES DATA PRODUK BARU
 router.post('/products/new', isAdmin, async (req, res) => {
     try {
-        const { name, description, price, stock_quantity, image_url } = req.body;
+        // [BARU] Tambahkan category_id
+        const { name, description, price, stock_quantity, image_url, category_id } = req.body;
+        
         await db.query(
-            'INSERT INTO products (name, description, price, stock_quantity, image_url) VALUES ($1, $2, $3, $4, $5)',
-            [name, description, price, stock_quantity, image_url]
+            'INSERT INTO products (name, description, price, stock_quantity, image_url, category_id) VALUES ($1, $2, $3, $4, $5, $6)',
+            [name, description, price, stock_quantity, image_url, category_id || null]
         );
         res.redirect('/admin/products');
     } catch (err) {
@@ -50,13 +62,19 @@ router.post('/products/new', isAdmin, async (req, res) => {
 router.get('/products/edit/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await db.query('SELECT * FROM products WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
+        const productResult = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+        
+        // [BARU] Ambil semua kategori untuk dropdown
+        const categoriesResult = await db.query('SELECT * FROM categories ORDER BY name ASC');
+
+        if (productResult.rows.length === 0) {
             return res.send('Produk tidak ditemukan');
         }
+
         res.render('admin_product_form', {
             title: 'Edit Produk',
-            product: result.rows[0],
+            product: productResult.rows[0],
+            categories: categoriesResult.rows, // [BARU] Kirim data kategori
             url: `/admin/products/edit/${id}`
         });
     } catch (err) {
@@ -69,11 +87,14 @@ router.get('/products/edit/:id', isAdmin, async (req, res) => {
 router.post('/products/edit/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, stock_quantity, image_url } = req.body;
+        // [BARU] Tambahkan category_id
+        const { name, description, price, stock_quantity, image_url, category_id } = req.body;
+        
         await db.query(
-            'UPDATE products SET name = $1, description = $2, price = $3, stock_quantity = $4, image_url = $5 WHERE id = $6',
-            [name, description, price, stock_quantity, image_url, id]
+            'UPDATE products SET name = $1, description = $2, price = $3, stock_quantity = $4, image_url = $5, category_id = $6 WHERE id = $7',
+            [name, description, price, stock_quantity, image_url, category_id || null, id]
         );
+        
         res.redirect('/admin/products');
     } catch (err) {
         console.error(err);
@@ -81,7 +102,7 @@ router.post('/products/edit/:id', isAdmin, async (req, res) => {
     }
 });
 
-// PROSES HAPUS PRODUK (SOFT DELETE / ARCHIVE)
+// PROSES HAPUS PRODUK (SOFT DELETE)
 router.post('/products/delete/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -96,7 +117,7 @@ router.post('/products/delete/:id', isAdmin, async (req, res) => {
     }
 });
 
-// PROSES RESTORE PRODUK (Un-archive)
+// PROSES RESTORE PRODUK
 router.post('/products/restore/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -111,7 +132,7 @@ router.post('/products/restore/:id', isAdmin, async (req, res) => {
     }
 });
 
-// TAMPILKAN SEMUA PESANAN (MANAJEMEN PESANAN)
+// MANAJEMEN PESANAN
 router.get('/orders', isAdmin, async (req, res) => {
     try {
         const result = await db.query(
@@ -127,7 +148,7 @@ router.get('/orders', isAdmin, async (req, res) => {
     }
 });
 
-// KONFIRMASI / KIRIM PESANAN
+// KONFIRMASI PESANAN
 router.post('/orders/ship/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;

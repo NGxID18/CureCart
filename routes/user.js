@@ -8,10 +8,10 @@ const isUser = (req, res, next) => {
     else res.redirect('/login');
 };
 
-// GET: Halaman Profil
+// GET: Tampilkan Halaman Profil
 router.get('/profile', isUser, async (req, res) => {
     try {
-        // Ambil data terbaru dari DB
+        // Ambil data user terbaru dari database
         const result = await db.query('SELECT * FROM users WHERE id = $1', [req.session.user.id]);
         res.render('profile', { userProfile: result.rows[0] });
     } catch (err) {
@@ -20,7 +20,7 @@ router.get('/profile', isUser, async (req, res) => {
     }
 });
 
-// POST: Update Profil
+// POST: Simpan Perubahan Profil
 router.post('/profile', isUser, async (req, res) => {
     try {
         const { name, alamat, nomor_telepon, tanggal_lahir } = req.body;
@@ -32,7 +32,7 @@ router.post('/profile', isUser, async (req, res) => {
             [name, alamat, nomor_telepon, tanggal_lahir, req.session.user.id]
         );
 
-        // Update session name agar header berubah
+        // Update nama di session agar header langsung berubah
         req.session.user.name = name;
         req.session.save();
 
