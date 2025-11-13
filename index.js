@@ -198,6 +198,68 @@ app.get('/products/:id', async (req, res) => {
     }
 });
 
+// ... (setelah rute app.get('/products/:id', ...))
+
+// [TAMBAHKAN RUTE INI]
+// TAMPILKAN HALAMAN "HISTORI PESANAN SAYA"
+app.get('/my-orders', isUser, async (req, res) => {
+    try {
+        // Ambil semua pesanan HANYA untuk user yang sedang login
+        const result = await db.query(
+            'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
+            [req.session.user.id]
+        );
+        
+        res.render('my_orders', { orders: result.rows });
+    } catch (err) {
+        console.error('Error memuat halaman pesanan saya:', err);
+        res.send('Error memuat halaman pesanan saya');
+    }
+});
+
+// PROSES PEMBATALAN PESANAN OLEH PELANGGAN
+app.post('/my-orders/cancel/:id', isUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.user.id;
+
+        // [PENTING] Kita harus mengembalikan stok produk
+        
+        // 1. Ambil semua item di pesanan yang dibatalkan
+        const itemsResult = await db.query(
+            `SELECT oi.product_id, oi.quantity 
+             FROM order_items oi
+             JOIN orders o ON oi.order_id = o.id
+             WHERE o.id = $1 AND o.user_id = $2 AND o.status = 'Paid'`,
+            [id, userId]
+        );
+        
+        if (itemsResult.rows.length > 0) {
+            // 2. Kembalikan stok untuk setiap item
+            for (const item of itemsResult.rows) {
+                await db.query(
+                    'UPDATE products SET stock_quantity = stock_quantity + $1 WHERE id = $2',
+                    [item.quantity, item.product_id]
+                );
+            }
+
+            // 3. Tandai pesanan sebagai 'Cancelled_By_User'
+            await db.query(
+                "UPDATE orders SET status = 'Cancelled_By_User' WHERE id = $1 AND user_id = $2 AND status = 'Paid'",
+                [id, userId]
+            );
+
+            // 4. (Opsional) Lakukan proses refund Stripe di sini.
+            // ... (Ini proses yang kompleks, kita skip dulu)
+        }
+        
+        res.redirect('/my-orders');
+    } catch (err) {
+        console.error('Error saat membatalkan pesanan:', err);
+        res.send('Error saat membatalkan pesanan.');
+    }
+});
+
 // ----- RUTE AUTENTIKASI (Tahap 3) -----
 app.get('/login', (req, res) => {
     res.render('login');
