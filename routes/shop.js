@@ -23,6 +23,80 @@ router.get('/categories', async (req, res) => {
     }
 });
 
+// RUTE UNTUK HALAMAN FILTER / PENCARIAN
+router.get('/search', async (req, res) => {
+    try {
+        // 1. Ambil semua parameter filter dari URL
+        const { q, category, min_price, max_price, sort } = req.query;
+        
+        // 2. Ambil semua kategori untuk ditampilkan di sidebar
+        const categoriesResult = await db.query('SELECT * FROM categories ORDER BY name ASC');
+
+        // 3. Mulai bangun Query SQL yang dinamis
+        let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';
+        const queryParams = [];
+        let paramCount = 1;
+
+        // --- Filter 1: Pencarian Nama ---
+        if (q) {
+            baseQuery += ` AND name ILIKE $${paramCount}`;
+            queryParams.push(`%${q}%`);
+            paramCount++;
+        }
+
+        // --- Filter 2: Kategori (Checkbox) ---
+        if (category) {
+            // Jika 'category' adalah array (banyak checkbox), gunakan 'ANY'
+            if (Array.isArray(category)) {
+                baseQuery += ` AND category_id = ANY($${paramCount}::int[])`;
+                queryParams.push(category);
+                paramCount++;
+            } 
+            // Jika 'category' hanya satu
+            else if (category) {
+                baseQuery += ` AND category_id = $${paramCount}`;
+                queryParams.push(category);
+                paramCount++;
+            }
+        }
+
+        // --- Filter 3: Rentang Harga ---
+        if (min_price) {
+            baseQuery += ` AND price >= $${paramCount}`;
+            queryParams.push(min_price);
+            paramCount++;
+        }
+        if (max_price) {
+            baseQuery += ` AND price <= $${paramCount}`;
+            queryParams.push(max_price);
+            paramCount++;
+        }
+
+        // --- Logika Sortir ---
+        if (sort === 'price_desc') {
+            baseQuery += ' ORDER BY price DESC'; // Termahal
+        } else if (sort === 'price_asc') {
+            baseQuery += ' ORDER BY price ASC'; // Termurah
+        } else {
+            baseQuery += ' ORDER BY created_at DESC'; // Default: Terbaru
+        }
+
+        // 4. Jalankan query
+        const productsResult = await db.query(baseQuery, queryParams);
+
+        // 5. Render halaman 'search.ejs' yang baru
+        res.render('search', {
+            products: productsResult.rows,
+            categories: categoriesResult.rows,
+            query: req.query // Kirim semua parameter query lama ke view
+        });
+
+    } catch (err) {
+        console.error('Error di halaman search:', err);
+        res.send('Error memuat halaman pencarian');
+    }
+});
+
 // Rute Halaman Utama (Homepage)
 router.get('/', async (req, res) => {
     try {
