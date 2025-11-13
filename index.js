@@ -435,6 +435,24 @@ app.post('/create-checkout-session', isUser, async (req, res) => {
     }
 });
 
+// Rute Halaman Sukses Pembayaran
+app.get('/order/success', isUser, (req, res) => {
+    // Pembayaran sukses, jadi kita kosongkan keranjang di session
+    req.session.cart = [];
+    req.session.save((err) => { // Simpan pengosongan
+        if (err) {
+            console.error('Error saat mengosongkan keranjang:', err);
+        }
+        res.render('order_success');
+    });
+});
+
+// Rute Halaman Batal Pembayaran
+app.get('/order/cancel', isUser, (req, res) => {
+    // Jangan kosongkan keranjang jika batal
+    res.render('order_cancel');
+});
+
 // Rute untuk MELIHAT Halaman Invoice (HTML)
 app.get('/invoice/:id', isUser, async (req, res) => {
     try {
