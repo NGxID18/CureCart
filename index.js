@@ -93,10 +93,10 @@ const isUser = (req, res, next) => {
 // Rute Halaman Utama (Homepage) - Etalase (Tahap 5)
 app.get('/', async (req, res) => {
     try {
-        // Ambil semua produk dari database
-        const result = await db.query('SELECT * FROM products WHERE stock_quantity > 0 ORDER BY created_at DESC');
-        
-        // Kirim data produk ke file 'index.ejs'
+        const result = await db.query(
+            'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE ORDER BY created_at DESC',
+        );
+
         res.render('index', { products: result.rows });
     
     } catch (err) {
@@ -105,11 +105,16 @@ app.get('/', async (req, res) => {
     }
 });
 
-// Rute Halaman Detail Produk (Tahap 5)
+// Rute Halaman Detail Produk
 app.get('/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+        
+        // GANTI QUERY INI:
+        const result = await db.query(
+            'SELECT * FROM products WHERE id = $1 AND is_archived = FALSE', 
+            [id]
+        );
 
         if (result.rows.length === 0) {
             return res.status(404).send('Produk tidak ditemukan');
@@ -325,8 +330,7 @@ app.post('/checkout', isUser, async (req, res) => {
                 [newOrderId, item.id, item.quantity, item.price]
             );
             
-            // PENTING: Di aplikasi nyata, Anda WAJIB mengurangi stok di tabel 'products'
-            // await db.query('UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2', [item.quantity, item.id]);
+            await db.query('UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2', [item.quantity, item.id]);
         }
 
         // 3. Kosongkan keranjang di session
@@ -515,15 +519,20 @@ app.post('/admin/products/edit/:id', isAdmin, async (req, res) => {
     }
 });
 
-// PROSES HAPUS PRODUK (DELETE)
+// PROSES HAPUS PRODUK (SOFT DELETE / ARCHIVE)
 app.post('/admin/products/delete/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        await db.query('DELETE FROM products WHERE id = $1', [id]);
+
+        await db.query(
+            'UPDATE products SET is_archived = TRUE WHERE id = $1',
+            [id]
+        );
+
         res.redirect('/admin/products');
     } catch (err) {
         console.error(err);
-        res.send('Error menghapus produk. Mungkin produk terkait dengan pesanan.');
+        res.send('Error meng-arsip produk.');
     }
 });
 
