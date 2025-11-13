@@ -95,11 +95,13 @@ app.use(session({
     }
 }));
 
-// 5. Middleware Lokal (Variabel Global untuk EJS)
+// 4. Middleware kustom...
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     res.locals.isProduction = isProduction;
     res.locals.stripePublicKey = process.env.STRIPE_PUBLISHABLE_KEY;
+    res.locals.searchTerm = req.query.search || '';
+    
     next();
 });
 

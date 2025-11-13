@@ -12,23 +12,19 @@ const isUser = (req, res, next) => {
     }
 };
 
-// Rute Halaman Utama (Homepage) dengan Logika Pencarian
+// Rute Halaman Utama (Homepage)
 router.get('/', async (req, res) => {
     try {
-        const { search } = req.query;
+        const { search } = res.locals; 
         let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';
         const queryParams = [];
-
         if (search) {
             baseQuery += ' AND name ILIKE $1'; 
             queryParams.push(`%${search}%`);
         }
         baseQuery += ' ORDER BY created_at DESC';
         const result = await db.query(baseQuery, queryParams);
-        res.render('index', { 
-            products: result.rows,
-            searchTerm: search || ''
-        });
+        res.render('index', { products: result.rows });
     } catch (err) {
         console.error(err);
         res.send('Error memuat halaman toko.');

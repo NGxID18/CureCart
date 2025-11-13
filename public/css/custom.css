@@ -6,7 +6,16 @@ body {
 }
 
 /* ----- 2. HAPUS EFEK KACA NAVBAR ----- */
-/* Kita akan pakai navbar standar Bootstrap (bg-dark) */
+/* Style untuk Navbar Search (Ala Tokopedia) */
+.navbar-search-form .form-control {
+    background-color: #f3f4f5; /* Warna abu-abu Tokopedia */
+    border: none;
+}
+.navbar-search-form .form-control:focus {
+    background-color: #fff;
+    border: 1px solid #0d6efd; /* Biru saat fokus */
+    box-shadow: none;
+}
 
 
 /* ----- 3. JUDUL PARALLAX (WAHANA) ----- */
