@@ -36,9 +36,20 @@ app.set('view engine', 'ejs');
 
 app.post('/stripe-webhook', express.raw({type: 'application/json'}), 
     async (req, res) => {
-        const sig = req.headers['stripe-signature'];
 
+        console.log('--- DEBUGGING WEBHOOK ---');
+        console.log('Nilai Secret dari env:', process.env.STRIPE_WEBHOOK_SECRET);
+        console.log('---------------------------');
+
+        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+        const sig = req.headers['stripe-signature'];
         let event;
+
+        // [TAMBAHKAN PENGECEKAN INI]
+        if (!endpointSecret) {
+            console.error('FATAL: STRIPE_WEBHOOK_SECRET tidak terdefinisi!');
+            return res.status(500).send('Webhook secret tidak dikonfigurasi.');
+        }
 
         try {
             // Verifikasi bahwa event ini 100% dari Stripe
