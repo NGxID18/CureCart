@@ -1,3 +1,49 @@
 </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // ----- Animasi 1: Parallax Judul Homepage -----
+        const title = document.getElementById('homepage-title');
+        if (title) {
+            window.addEventListener('scroll', () => {
+                // Gerakkan judul ke atas (Parallax) dengan kecepatan 50% dari scroll
+                // dan buat 'fade out'
+                const scrollY = window.scrollY;
+                title.style.transform = `translateY(${scrollY * 0.5}px)`;
+                title.style.opacity = 1 - (scrollY / 400);
+            });
+        }
+
+        // ----- Animasi 2: "Fluidity" Saat Scroll (Intersection Observer) -----
+        // Ini adalah API browser modern untuk mendeteksi kapan elemen terlihat
+        
+        // Pilih semua elemen yang ingin kita animasikan saat muncul
+        const revealElements = document.querySelectorAll('.reveal-on-scroll');
+
+        const observer = new IntersectionObserver((entries) => {
+            // Loop setiap elemen yang diamati
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Jika elemen masuk ke layar, tambahkan kelas 'is-visible'
+                    // CSS kita di custom.css akan menangani animasinya
+                    entry.target.classList.add('is-visible');
+                    
+                    // (Opsional) Berhenti mengamati elemen ini agar animasi tidak berulang
+                    // observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1 // Picu animasi saat 10% elemen terlihat
+        });
+
+        // Amati semua elemen yang punya kelas 'reveal-on-scroll'
+        revealElements.forEach(el => {
+            observer.observe(el);
+        });
+
+    });
+</script>
+
 </body>
 </html>

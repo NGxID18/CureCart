@@ -1,0 +1,214 @@
+/* ----- 1. RESET & LATAR BELAKANG ----- */
+
+/* Mengganti font default browser dengan font sistem yang modern */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    
+    /* Gradien "ricing" yang gelap sebagai latar belakang */
+    background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+    color: #e0e0e0; /* Teks default lebih cerah */
+    
+    /* Animasi fade-in global saat halaman dimuat */
+    animation: fadeInPage 1s ease-in-out;
+}
+
+/* Hapus background 'bg-light' dari Bootstrap */
+.bg-light {
+    background-color: transparent !important;
+}
+
+/* ----- 2. NAVBAR (EFEK KACA / "HYPRLAND BLUR") ----- */
+.navbar-sticky-glass {
+    /* Inilah efek Glassmorphism! */
+    background: rgba(30, 30, 30, 0.7); /* Latar belakang semi-transparan */
+    backdrop-filter: blur(12px); /* Efek blur pada konten di belakangnya */
+    -webkit-backdrop-filter: blur(12px); /* Untuk browser Safari */
+    
+    /* Membuatnya "mengambang" (floating) */
+    position: sticky;
+    top: 1rem; /* Beri jarak 1rem dari atas */
+    width: 95%; /* Tidak penuh 100% */
+    max-width: 1320px; /* Cocokkan dengan container Bootstrap */
+    margin: 1rem auto; /* Otomatis di tengah */
+    z-index: 1030;
+    
+    /* Finishing "ricing" */
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    
+    /* Animasi saat navbar muncul */
+    animation: dropDown 0.5s ease-out forwards;
+}
+
+/* ----- 3. JUDUL PARALLAX (WAHANA) ----- */
+#homepage-title {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #fff;
+    /* Kita akan animasikan ini dengan JavaScript nanti */
+}
+
+/* ----- 4. KARTU PRODUK (ANIMASI & INTERAKSI) ----- */
+.card {
+    /* Ubah dari Bootstrap default */
+    background: rgba(45, 45, 45, 0.7); /* Latar belakang kaca gelap */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #e0e0e0;
+    
+    /* Transisi untuk semua animasi */
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* Sembunyikan 'glow' sampai di-hover */
+    overflow: hidden;
+    position: relative;
+}
+
+.card-title a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.card-title a:hover {
+    color: #0d6efd; /* Warna primer Bootstrap */
+}
+.card-text, .card-text-muted, .text-muted {
+    color: #b0b0b0 !important;
+}
+.card-footer {
+    background-color: transparent; /* Hapus latar belakang putih */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Efek "Hover" ala Ricing: Mengangkat & Bersinar */
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* [EFEK KHUSUS] Efek "Aurora Glow" pada card */
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* Gradien "border" yang berputar */
+    background: conic-gradient(
+        from 180deg at 50% 50%,
+        rgba(0, 123, 255, 0.6) 0deg,
+        rgba(255, 0, 255, 0.6) 120deg,
+        rgba(0, 255, 255, 0.6) 240deg,
+        rgba(0, 123, 255, 0.6) 360deg
+    );
+    
+    filter: blur(20px);
+    transform: scale(1.1);
+    
+    /* Sembunyikan sampai di-hover */
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+    
+    /* Animasi putaran */
+    animation: rotateGradient 6s linear infinite;
+}
+
+.card:hover::before {
+    opacity: 1; /* Tampilkan saat di-hover */
+}
+
+
+/* ----- 5. ANIMASI "FLUIDITY" (SCROLL) ----- */
+/* * Sembunyikan elemen secara default. 
+ * JavaScript akan menambah class 'is-visible' saat elemen masuk layar.
+ */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(5px);
+    transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+}
+
+
+/* ----- 6. KEYFRAMES ANIMASI ----- */
+@keyframes fadeInPage {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes dropDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes rotateGradient {
+    from { transform: rotate(0deg) scale(1.1); }
+    to { transform: rotate(360deg) scale(1.1); }
+}
+
+/* ----- 7. PERBAIKAN TAMPILAN BOOTSTRAP ----- */
+.alert-info, .alert-warning, .alert-success, .alert-danger {
+    background-color: rgba(50, 50, 50, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.form-control, .form-select {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+.form-control:focus, .form-select:focus {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-color: #0d6efd;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
+    color: #fff;
+}
+/* Mengganti warna teks putih di input saat 'disabled' */
+.form-control:disabled {
+    background-color: rgba(0, 0, 0, 0.2);
+    opacity: 0.7;
+}
+/* Agar 'placeholder' tidak terlalu terang */
+.form-control::placeholder {
+    color: #aaa;
+}
+
+.dropdown-menu {
+    background: rgba(30, 30, 30, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.dropdown-item, .dropdown-item-text {
+    color: #e0e0e0;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+    color: #fff;
+    background-color: rgba(13, 110, 253, 0.5);
+}
+.dropdown-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.table {
+    color: #e0e0e0; /* Warna teks tabel */
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: #e0e0e0;
+}
