@@ -1,9 +1,21 @@
 <%- include('_header', { title: 'Invoice #' + order.id }) %>
 
-<div class="alert alert-success" role="alert">
-    <h4 class="alert-heading">Pembayaran Berhasil!</h4>
-    <p>Terima kasih atas pesanan Anda. Pesanan Anda sedang kami proses.</p>
-</div>
+<% if (locals.from_checkout === 'true') { %>
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">Pembayaran Berhasil!</h4>
+        <p>Terima kasih atas pesanan Anda. Pesanan Anda sedang kami proses.</p>
+    </div>
+<% } %>
+
+<% if (order.status === 'Cancelled_By_User') { %>
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Pesanan Dibatalkan</h4>
+        <p>Pesanan ini telah dibatalkan. Stok produk telah dikembalikan.</p>
+    </div>
+<% } %>
+
+
+<div class="card shadow-sm">
 
 <div class="card shadow-sm">
     <div class="card-header">

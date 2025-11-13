@@ -445,7 +445,7 @@ app.post('/create-checkout-session', isUser, async (req, res) => {
                 order_id: newOrderId,
                 user_id: userId
             },
-            success_url: `${process.env.YOUR_DOMAIN}/invoice/${newOrderId}`,
+            success_url: `${process.env.YOUR_DOMAIN}/invoice/${newOrderId}?from_checkout=true`,
             cancel_url: `${process.env.YOUR_DOMAIN}/order/cancel?order_id=${newOrderId}`,
         });
         res.json({ id: session.id });
@@ -475,18 +475,34 @@ app.get('/order/cancel', isUser, (req, res) => {
 app.get('/invoice/:id', isUser, async (req, res) => {
     try {
         const { id } = req.params;
+        const { from_checkout } = req.query; // Ambil param dari URL
+
+        // [PERBAIKAN 1B] Kosongkan keranjang JIKA baru checkout
+        if (from_checkout === 'true' && req.session.cart && req.session.cart.length > 0) {
+            req.session.cart = [];
+            req.session.save(); // Simpan keranjang kosong
+        }
+
+        // Query untuk ambil data order
         const orderResult = await db.query('SELECT * FROM orders WHERE id = $1 AND user_id = $2', [id, req.session.user.id]);
+        
         if (orderResult.rows.length === 0) {
             return res.send('Invoice tidak ditemukan atau bukan milik Anda.');
         }
+
+        // Query untuk ambil data item-itemnya
         const itemsResult = await db.query(
             'SELECT p.name, oi.quantity, oi.price_at_purchase FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = $1',
             [id]
         );
+
         res.render('invoice', {
             order: orderResult.rows[0],
-            items: itemsResult.rows
+            items: itemsResult.rows,
+            // [PERBAIKAN 1C] Kirim info 'from_checkout' ke EJS
+            from_checkout: from_checkout 
         });
+
     } catch (err) {
         console.error(err);
         res.send('Error memuat invoice.');
