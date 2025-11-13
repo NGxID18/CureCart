@@ -19,6 +19,7 @@ const authRoutes = require('./routes/auth');
 const shopRoutes = require('./routes/shop');
 const orderRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
+const userRoutes = require('./routes/user');
 
 // ----- MIDDLEWARE -----
 
@@ -107,6 +108,8 @@ app.use((req, res, next) => {
 
 // ----- PENGGUNAAN RUTE -----
 // Gunakan file-file rute yang sudah kita impor
+
+app.use('/', userRoutes);
 
 // Rute Autentikasi (Login, Register, Logout)
 app.use('/', authRoutes);

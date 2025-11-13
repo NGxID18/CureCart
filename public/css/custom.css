@@ -1,59 +1,11 @@
 /* ----- 1. RESET & LATAR BELAKANG ----- */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    /* Kita biarkan Bootstrap (bg-light) yang mengatur latar belakang */
+    /* Biarkan Bootstrap (bg-light) yang mengatur latar belakang */
     animation: fadeInPage 0.5s ease-in-out;
 }
 
-/* ----- 2. HAPUS EFEK KACA NAVBAR ----- */
-/* Style untuk Navbar Search (Ala Tokopedia) */
-.navbar-search-form .form-control {
-    background-color: #f3f4f5; /* Warna abu-abu Tokopedia */
-    border: none;
-}
-.navbar-search-form .form-control:focus {
-    background-color: #fff;
-    border: 1px solid #0d6efd; /* Biru saat fokus */
-    box-shadow: none;
-}
-
-
-/* ----- 3. JUDUL PARALLAX (WAHANA) ----- */
-#homepage-title {
-    font-size: 4rem;
-    font-weight: 900;
-    color: #212529; /* Warna teks gelap */
-}
-
-/* ----- 4. KARTU PRODUK (ANIMASI & INTERAKSI) ----- */
-.card {
-    /* Transisi untuk animasi hover (mengangkat) */
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.card-title a {
-    color: #212529;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-.card-title a:hover {
-    color: #0d6efd; 
-}
-.card-footer {
-    background-color: #fff; /* Pastikan footer kartu putih */
-    border-top: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-/* Efek "Hover" (Sesuai permintaan Anda: Mengangkat) */
-.card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-}
-
-/* [DIHAPUS] Animasi pelangi '.card::before' dan '.card:hover::before' */
-
-
-/* ----- 5. ANIMASI "FLUIDITY" (SCROLL) ----- */
+/* ----- 2. ANIMASI "FLUIDITY" (SCROLL) ----- */
 .reveal-on-scroll {
     opacity: 0;
     transform: translateY(30px);
@@ -66,46 +18,64 @@ body {
     filter: blur(0);
 }
 
-/* ----- 6. KEYFRAMES ANIMASI ----- */
+/* ----- 3. KEYFRAMES ANIMASI ----- */
 @keyframes fadeInPage {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-/* ----- 7. PERBAIKAN TAMPILAN BOOTSTRAP (TEMA TERANG) ----- */
-/* Biarkan style Bootstrap default */
-
-/* ----- 8. PALET WARNA ORCHID (KUSTOM) ----- */
-/* :root mendefinisikan variabel warna utama kita */
-:root {
-    --orchid-color: #9B59B6; /* Ini adalah warna Ungu Orchid yang bagus */
-    --orchid-darker: #8E44AD; /* Ini untuk efek hover */
+/* ----- 4. KARTU PRODUK (ANIMASI HOVER) ----- */
+.card {
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15) !important; /* Paksa shadow saat hover */
+}
+.card-title a {
+    color: #212529;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.card-title a:hover {
+    color: #9B59B6; /* Warna Orchid saat hover */
 }
 
-/* Tombol Solid (Untuk "Registrasi" dan "Cari") */
+/* ----- 5. STYLE NAVBAR SEARCH (ALA TOKOPEDIA) ----- */
+.navbar-search-form .form-control {
+    background-color: #f3f4f5;
+    border: 1px solid transparent;
+}
+.navbar-search-form .form-control:focus {
+    background-color: #fff;
+    border: 1px solid #9B59B6; /* Border Orchid saat fokus */
+    box-shadow: none;
+}
+
+/* ----- 6. PALET WARNA ORCHID (KUSTOM) ----- */
+:root {
+    --orchid-color: #9B59B6; 
+    --orchid-darker: #8E44AD;
+}
+
+/* Tombol Solid (Registrasi, Tambah, Cari) */
 .btn-orchid {
     background-color: var(--orchid-color);
     border-color: var(--orchid-color);
-    color: #ffffff; /* Teks putih */
+    color: #ffffff;
 }
-
-/* Efek Hover (sedikit lebih gelap) */
-.btn-orchid:hover,
-.btn-orchid:focus {
+.btn-orchid:hover, .btn-orchid:focus {
     background-color: var(--orchid-darker);
     border-color: var(--orchid-darker);
     color: #ffffff;
 }
 
-/* Tombol Outline (Untuk "Login") */
+/* Tombol Outline (Login) */
 .btn-outline-orchid {
     color: var(--orchid-color);
     border-color: var(--orchid-color);
 }
-
-/* Efek Hover (jadi solid) */
-.btn-outline-orchid:hover,
-.btn-outline-orchid:focus {
+.btn-outline-orchid:hover, .btn-outline-orchid:focus {
     background-color: var(--orchid-color);
     border-color: var(--orchid-color);
     color: #ffffff;

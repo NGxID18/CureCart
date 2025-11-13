@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// Middleware 'isUser' (kita salin ke sini agar file ini mandiri)
+// Middleware 'isUser'
 const isUser = (req, res, next) => {
     if (req.session.user) {
         next();
@@ -12,30 +12,23 @@ const isUser = (req, res, next) => {
     }
 };
 
-// Rute Halaman Utama (Homepage) dengan Logika Pencarian
+// Rute Halaman Utama (Homepage)
 router.get('/', async (req, res) => {
     try {
-        // [FIX 1] Ambil 'search' dari res.locals (bukan req.query)
+        // [FIX] Ambil 'search' dari res.locals (Middleware global di index.js)
         const { search } = res.locals; 
 
-        // Siapkan query dasar
         let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';
         const queryParams = [];
 
-        // [FIX 1] Logika ini sekarang akan berfungsi
         if (search) {
-            // 'ILIKE' adalah 'LIKE' yang case-insensitive (khusus Postgres)
             baseQuery += ' AND name ILIKE $1'; 
             queryParams.push(`%${search}%`);
         }
-
-        // Tambahkan urutan di akhir
         baseQuery += ' ORDER BY created_at DESC';
-
-        // Jalankan query
+        
         const result = await db.query(baseQuery, queryParams);
 
-        // [FIX 1] Kita tidak perlu mengirim 'searchTerm' lagi, karena sudah global
         res.render('index', { 
             products: result.rows
         });
@@ -64,7 +57,7 @@ router.get('/products/:id', async (req, res) => {
     }
 });
 
-// Rute untuk MELIHAT Halaman Keranjang
+// Rute Keranjang (Cart)
 router.get('/cart', isUser, (req, res) => {
     const cart = req.session.cart || [];
     let total = 0;
@@ -77,7 +70,7 @@ router.get('/cart', isUser, (req, res) => {
     });
 });
 
-// Rute untuk MENAMBAH produk ke keranjang
+// Rute Tambah ke Keranjang
 router.post('/cart/add/:id', isUser, async (req, res) => {
     const { id } = req.params;
     const quantity = parseInt(req.body.quantity, 10);
@@ -111,7 +104,7 @@ router.post('/cart/add/:id', isUser, async (req, res) => {
     }
 });
 
-// Rute untuk MENGHAPUS item dari keranjang
+// Rute Hapus dari Keranjang
 router.get('/cart/remove/:id', isUser, (req, res) => {
     const { id } = req.params;
     if (req.session.cart) {
@@ -123,7 +116,7 @@ router.get('/cart/remove/:id', isUser, (req, res) => {
     res.redirect('/cart');
 });
 
-// Rute untuk MEMBUAT SESI CHECKOUT STRIPE
+// Rute Checkout Stripe
 router.post('/create-checkout-session', isUser, async (req, res) => {
     try {
         const cart = req.session.cart || [];
