@@ -3,7 +3,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
 
-        // ----- Animasi 1: Parallax Judul Homepage -----
+        // Animasi 1: Parallax Judul Homepage
         const title = document.getElementById('homepage-title');
         if (title) {
             window.addEventListener('scroll', () => {
@@ -13,7 +13,7 @@
             });
         }
 
-        // ----- Animasi 2: "Fluidity" Saat Scroll (Intersection Observer) -----
+        // Animasi 2: "Fluidity" Saat Scroll
         const revealElements = document.querySelectorAll('.reveal-on-scroll');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
