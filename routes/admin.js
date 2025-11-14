@@ -14,7 +14,6 @@ const isAdmin = (req, res, next) => {
 // TAMPILKAN SEMUA PRODUK (READ)
 router.get('/products', isAdmin, async (req, res) => {
     try {
-        // Kita bisa JOIN untuk menampilkan nama kategori juga di tabel (Opsional)
         const result = await db.query('SELECT * FROM products ORDER BY id DESC');
         res.render('admin_products', { products: result.rows });
     } catch (err) {
@@ -26,13 +25,12 @@ router.get('/products', isAdmin, async (req, res) => {
 // TAMPILKAN FORM TAMBAH PRODUK BARU
 router.get('/products/new', isAdmin, async (req, res) => {
     try {
-        // [BARU] Ambil semua kategori untuk dropdown
         const categories = await db.query('SELECT * FROM categories ORDER BY name ASC');
         
         res.render('admin_product_form', {
             title: 'Tambah Produk Baru',
             product: null,
-            categories: categories.rows, // [BARU] Kirim data kategori ke view
+            categories: categories.rows,
             url: '/admin/products/new'
         });
     } catch (err) {
@@ -44,7 +42,6 @@ router.get('/products/new', isAdmin, async (req, res) => {
 // PROSES DATA PRODUK BARU
 router.post('/products/new', isAdmin, async (req, res) => {
     try {
-        // [BARU] Tambahkan category_id
         const { name, description, price, stock_quantity, image_url, category_id } = req.body;
         
         await db.query(

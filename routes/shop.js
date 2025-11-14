@@ -26,13 +26,9 @@ router.get('/categories', async (req, res) => {
 // RUTE UNTUK HALAMAN FILTER / PENCARIAN
 router.get('/search', async (req, res) => {
     try {
-        // 1. Ambil semua parameter filter dari URL
         const { q, category, min_price, max_price, sort } = req.query;
-        
-        // 2. Ambil semua kategori untuk ditampilkan di sidebar
         const categoriesResult = await db.query('SELECT * FROM categories ORDER BY name ASC');
 
-        // 3. Mulai bangun Query SQL yang dinamis
         let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';
         const queryParams = [];
         let paramCount = 1;
@@ -46,7 +42,6 @@ router.get('/search', async (req, res) => {
 
         // --- Filter 2: Kategori (Checkbox) ---
         if (category) {
-            // Jika 'category' adalah array (banyak checkbox), gunakan 'ANY'
             if (Array.isArray(category)) {
                 baseQuery += ` AND category_id = ANY($${paramCount}::int[])`;
                 queryParams.push(category);
@@ -74,11 +69,11 @@ router.get('/search', async (req, res) => {
 
         // --- Logika Sortir ---
         if (sort === 'price_desc') {
-            baseQuery += ' ORDER BY price DESC'; // Termahal
+            baseQuery += ' ORDER BY price DESC';
         } else if (sort === 'price_asc') {
-            baseQuery += ' ORDER BY price ASC'; // Termurah
+            baseQuery += ' ORDER BY price ASC';
         } else {
-            baseQuery += ' ORDER BY created_at DESC'; // Default: Terbaru
+            baseQuery += ' ORDER BY created_at DESC';
         }
 
         // 4. Jalankan query
@@ -88,7 +83,7 @@ router.get('/search', async (req, res) => {
         res.render('search', {
             products: productsResult.rows,
             categories: categoriesResult.rows,
-            query: req.query // Kirim semua parameter query lama ke view
+            query: req.query 
         });
 
     } catch (err) {
@@ -100,7 +95,6 @@ router.get('/search', async (req, res) => {
 // Rute Halaman Utama (Homepage)
 router.get('/', async (req, res) => {
     try {
-        // [FIX] Ambil 'search' dari res.locals (Middleware global di index.js)
         const { search } = res.locals; 
 
         let baseQuery = 'SELECT * FROM products WHERE stock_quantity > 0 AND is_archived = FALSE';

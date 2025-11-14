@@ -124,11 +124,7 @@
     document.getElementById('sort-select').addEventListener('change', function() {
         const selectedSort = this.value;
         const form = document.getElementById('filter-form');
-        
-        // Update nilai 'sort' di form
         form.querySelector('input[name="sort"]').value = selectedSort;
-        
-        // Submit form
         form.submit();
     });
 </script>

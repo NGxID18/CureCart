@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const db = require('../db'); // Kita pakai '../' untuk kembali satu folder
+const db = require('../db');
 
 // Rute untuk Halaman Login (GET)
 router.get('/login', (req, res) => {
@@ -85,4 +85,4 @@ router.post('/logout', (req, res) => {
     });
 });
 
-module.exports = router; // Ekspor router
+module.exports = router;

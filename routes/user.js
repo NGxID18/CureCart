@@ -11,7 +11,6 @@ const isUser = (req, res, next) => {
 // GET: Tampilkan Halaman Profil
 router.get('/profile', isUser, async (req, res) => {
     try {
-        // Ambil data user terbaru dari database
         const result = await db.query('SELECT * FROM users WHERE id = $1', [req.session.user.id]);
         res.render('profile', { userProfile: result.rows[0] });
     } catch (err) {
@@ -32,7 +31,6 @@ router.post('/profile', isUser, async (req, res) => {
             [name, alamat, nomor_telepon, tanggal_lahir, req.session.user.id]
         );
 
-        // Update nama di session agar header langsung berubah
         req.session.user.name = name;
         req.session.save();
 

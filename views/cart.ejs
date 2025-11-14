@@ -63,7 +63,6 @@
     const stripe = Stripe(stripePublicKey);
     const checkoutButton = document.getElementById('checkout-button');
 
-    // [PERBAIKAN] Tambahkan 'if' agar tidak error jika admin mengunjungi halaman ini
     if (checkoutButton) {
         checkoutButton.addEventListener('click', function() {
             checkoutButton.disabled = true;

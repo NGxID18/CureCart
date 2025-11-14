@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const PDFDocument = require('pdfkit');
 
-// Middleware 'isUser' (kita salin ke sini)
+// Middleware 'isUser'
 const isUser = (req, res, next) => {
     if (req.session.user) {
         next();
@@ -12,7 +12,7 @@ const isUser = (req, res, next) => {
     }
 };
 
-// Rute Halaman Sukses Pembayaran (Tidak terpakai, tapi jaga-jaga)
+// Rute Halaman Sukses Pembayaran
 router.get('/order/success', isUser, (req, res) => {
     req.session.cart = [];
     req.session.save((err) => {
@@ -80,7 +80,6 @@ router.post('/my-orders/cancel/:id', isUser, async (req, res) => {
                 "UPDATE orders SET status = 'Cancelled_By_User' WHERE id = $1 AND user_id = $2 AND status = 'Paid'",
                 [id, userId]
             );
-            // TODO: Tambahkan logika refund Stripe di sini
         }
         res.redirect('/my-orders');
     } catch (err) {
@@ -123,8 +122,6 @@ router.get('/invoice/:id', isUser, async (req, res) => {
 router.get('/invoice/:id/pdf', isUser, async (req, res) => {
     try {
         const { id } = req.params;
-        // ... (Logika PDF lengkap Anda salin dari index.js lama Anda) ...
-        // ... (Saya akan singkat di sini agar tidak terlalu panjang)
         const orderResult = await db.query('SELECT * FROM orders WHERE id = $1 AND user_id = $2', [id, req.session.user.id]);
         if (orderResult.rows.length === 0) { return res.send('Invoice tidak ditemukan.'); }
         const order = orderResult.rows[0];
